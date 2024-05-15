@@ -87,6 +87,93 @@ public UserDetailsService userDetailsService(){
   
   ```
 
+## JDBC User Authentication
+
+in the Schema.sql
+create user table
+
+```sql
+CREATE TABLE users (
+
+username varchar_ignorecase(50) not null primary key,
+password varchar_ignorecase(50) not null,
+enabled boolean not null
+
+);
+
+CREATE TABLE AUTHORITES (
+ username varchar_ignorecase(50) not null,
+ authority varchar_ignorecase(50) not null,
+constraint fk_authorities_users foreigne key (username) references users(username)
+
+
+);
+
+CREATE UNIQUE INDEX ix_auth-username on authorities (username, authority);
+
+
+```
+* now lets go back to the WebSecurityConfig class
+* we going to make some changes in the @bean method which has UserDetailsService has a return type
+ ```java
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+@Override
+protected void configure(HttpSecurity http) throws Exception{
+
+      http.authorizeRequests().antmatchers("/", "/home").permitAll().anyRequest().authenticated().and().httpBasic();
+
+}
+
+@Bean
+public UserDetailsService users( DataSource dataSource){
+                      
+return new jdbcUserDetailsManager(dataSource);
+}
+// which we will have to remove
+@Bean
+public static PassowrdEncoder getPassowrdEcnoder(){
+ return NoOpPassowrdEncoder.getInstance();
+
+
+}
+
+
+}
+  
+  ```
+
+We created passowrd using plain text and stored them in the database
+you should never store passwords in plain text. you should never encrpt your user's passowrd either 
+
+you should use cryptographically sound one-way hash.
+
+note shell 256 is no longer considere secure because it can be brute force attacked 
+by things like high performance GPUs.
+
+## Using BCrypt
+
+rremove the rturn
+
+```java
+// which we will have to remove
+@Bean
+public static PassowrdEncoder getPassowrdEcnoder(){
+ 
+
+
+}
+
+
+```
+### Applying Authorizations
+
+
+
+
+
 
 
 
